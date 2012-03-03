@@ -70,6 +70,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Compile Include="..\..\SharedClasses\EncodeAndDecodeInterop.cs">
+      <Link>EncodeAndDecodeInterop.cs</Link>
+    </Compile>
     <Compile Include="..\..\SharedClasses\NotifyIconWPF.cs">
       <Link>NotifyIconWPF.cs</Link>
     </Compile>
