@@ -16,6 +16,8 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using SharedClasses;
+using Microsoft.Windows.Controls;
+using System.Windows.Markup;
 
 namespace TestingMonitorSubversion
 {
@@ -34,7 +36,13 @@ namespace TestingMonitorSubversion
 
 		private void Window_Loaded(object sender, RoutedEventArgs e)
 		{
-			trayIcon.BalloonTipClicked += delegate { this.Show(); };
+			trayIcon.BalloonTipClicked += delegate
+			{
+				this.Show();
+				this.Activate();
+				if (this.WindowState == System.Windows.WindowState.Minimized)
+					this.WindowState = System.Windows.WindowState.Normal;
+			};
 
 			ObservableCollection<MonitoredDirectory> tmpList = new ObservableCollection<MonitoredDirectory>();
 			tmpList.Add(new MonitoredDirectory(@"C:\Programming\Wadiso6\Wadiso6Lib"));
@@ -49,6 +57,7 @@ namespace TestingMonitorSubversion
 			tmpList.Add(new MonitoredDirectory(@"C:\Users\francois\Documents\Visual Studio 2010\Projects\SharedClasses"));
 			tmpList.Add(new MonitoredDirectory(@"C:\Users\francois\Documents\Visual Studio 2010\Projects\TestingSharedClasses"));
 			tmpList.Add(new MonitoredDirectory(@"C:\Users\francois\Documents\Visual Studio 2010\Projects\QuickAccess"));
+			tmpList.Add(new MonitoredDirectory(@"C:\Users\francois\Documents\Visual Studio 2010\Projects\TestingMonitorSubversion"));
 			monitoredList.Add(new MonitoredCategory("Personal", tmpList));
 
 			treeViewMonitoredDirectories.ItemsSource = monitoredList;
@@ -88,10 +97,16 @@ namespace TestingMonitorSubversion
 		{
 			if (!IsBusyChecking)
 			{
+				buttonCheckNow.IsEnabled = false;
+
 				IsBusyChecking = true;
 				progessBar1.Visibility = System.Windows.Visibility.Visible;
 				this.UpdateLayout();
 				progessBar1.UpdateLayout();
+
+				foreach (MonitoredCategory cat in monitoredList)
+					foreach (MonitoredDirectory md in cat.MonitoredDirectories)
+						md.BrushType = BrushTypeEnum.Default;
 
 				foreach (MonitoredCategory cat in monitoredList)
 				{
@@ -158,13 +173,14 @@ namespace TestingMonitorSubversion
 						trayIcon.ShowBalloonTip(
 							3000,
 							string.Format("Changes: {0}", cat.CategoryName),
-							string.Join(Environment.NewLine, ChangedDirectories),
+							string.Join(Environment.NewLine, ChangedDirectories.Select(d => d.Split('\\')[d.Split('\\').Length - 1])),
 							System.Windows.Forms.ToolTipIcon.Warning);
 					ChangedDirectories.Clear();
 					ChangedDirectories = null;
 				}
 
 				progessBar1.Visibility = System.Windows.Visibility.Collapsed;
+				buttonCheckNow.IsEnabled = true;
 				IsBusyChecking = false;
 			}
 		}
@@ -229,7 +245,7 @@ namespace TestingMonitorSubversion
 		public void OnPropertyChanged(string propertyName) { PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
 	}
 
-	public enum BrushTypeEnum { Error, Success };
+	public enum BrushTypeEnum { Default, Error, Success };
 	public class MonitoredDirectory : INotifyPropertyChanged
 	{
 		private string _directory;
@@ -260,9 +276,9 @@ namespace TestingMonitorSubversion
 					_errorbrush = new LinearGradientBrush(
 						new GradientStopCollection(new GradientStop[]
 						{ 
-							new GradientStop(new Color(){ A = 30, R = 240, G = 0, B = 0 }, 0),
-							new GradientStop(new Color(){ A = 30, R = 220, G = 0, B = 0 }, 0),
-							new GradientStop(new Color(){ A = 30, R = 255, G = 0, B = 0 }, 0),
+							new GradientStop(new Color(){ A = 255, R = 40, G = 0, B = 0 }, 0),
+							new GradientStop(new Color(){ A = 255, R = 80, G = 0, B = 0 }, 0.75),
+							new GradientStop(new Color(){ A = 255, R = 55, G = 0, B = 0 }, 1),
 						}),
 						new Point(0, 0),
 						new Point(0, 1));
@@ -279,9 +295,12 @@ namespace TestingMonitorSubversion
 					_successbrush = new LinearGradientBrush(
 						new GradientStopCollection(new GradientStop[]
 						{ 
-							new GradientStop(new Color(){ A = 30, R = 0, G = 240, B = 0 }, 0),
-							new GradientStop(new Color(){ A = 30, R = 0, G = 220, B = 0 }, 0),
-							new GradientStop(new Color(){ A = 30, R = 0, G = 255, B = 0 }, 0),
+							//new GradientStop(new Color(){ A = 30, R = 0, G = 240, B = 0 }, 0),
+							//new GradientStop(new Color(){ A = 30, R = 0, G = 220, B = 0 }, 0),
+							//new GradientStop(new Color(){ A = 30, R = 0, G = 255, B = 0 }, 0),
+							new GradientStop(new Color(){ A = 255, R = 0, G = 40, B = 0 }, 0),
+							new GradientStop(new Color(){ A = 255, R = 0, G = 80, B = 0 }, 0.75),
+							new GradientStop(new Color(){ A = 255, R = 0, G = 55, B = 0 }, 1),
 						}),
 						new Point(0, 0),
 						new Point(0, 1));
@@ -302,7 +321,30 @@ namespace TestingMonitorSubversion
 			{
 				case BrushTypeEnum.Error: return MyBrushes.ErrorBrush;
 				case BrushTypeEnum.Success: return MyBrushes.SuccessBrush;
-				default: return MyBrushes.SuccessBrush;
+				case BrushTypeEnum.Default: return Brushes.Transparent;
+				default: return Brushes.Transparent;
+			}
+		}
+
+		public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+		{
+			throw new NotImplementedException();
+		}
+	}
+
+	public class BrushTypeToForegroundConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+		{
+			if (!(value is BrushTypeEnum))
+				return Colors.Black;
+			BrushTypeEnum bt = (BrushTypeEnum)value;
+			switch (bt)
+			{
+				case BrushTypeEnum.Error: return Brushes.LightGray;
+				case BrushTypeEnum.Success: return Brushes.LightGray;
+				case BrushTypeEnum.Default: return Brushes.Black;
+				default: return Brushes.Black;
 			}
 		}
 

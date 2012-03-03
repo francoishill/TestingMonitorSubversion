@@ -1,9 +1,11 @@
-﻿<Window x:Class="TestingMonitorSubversion.MainWindow"
+﻿<Window xmlns:my1="clr-namespace:FsWpfControls.FsRichTextBox"
+		x:Class="TestingMonitorSubversion.MainWindow"
 		xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 		xmlns:local='clr-namespace:TestingMonitorSubversion'
 		xmlns:sharedclasses='clr-namespace:SharedClasses'
 		xmlns:forms="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
+		xmlns:my="clr-namespace:eisiWare;assembly=NumericUpDown"
 		Title="MainWindow"
 		Height="800"
 		Name='mainWindow'
@@ -12,10 +14,10 @@
 		Topmost='True'
 		Loaded='Window_Loaded'
 		WindowStyle='None'
-		WindowStartupLocation='CenterScreen'
-		xmlns:my="clr-namespace:eisiWare;assembly=NumericUpDown">
+		WindowStartupLocation='CenterScreen'>
 	<Window.Resources>
 		<local:BrushTypeToBrushConverter x:Key='brushTypeToBrushConverter' />
+		<local:BrushTypeToForegroundConverter x:Key='brushTypeToForegroundConverter' />
 		<SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}"
 						 Color="Transparent" />
 		<SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}"
@@ -32,7 +34,7 @@
 								DefaultItem="True" />
 				<forms:MenuItem Text="-" />
 				<forms:MenuItem Text="Check now"
-								Click="OnMenuItemCheckNowClick"/>
+								Click="OnMenuItemCheckNowClick" />
 				<forms:MenuItem Text="-" />
 				<forms:MenuItem Text="Exit"
 								Click="OnMenuItemExitClick" />
@@ -63,8 +65,10 @@
 									Margin='3'
 									Background='{Binding BrushType, Converter={StaticResource brushTypeToBrushConverter}}'>
 								<StackPanel Orientation='Vertical'>
-									<TextBlock Text='{Binding Directory}' />
-									<TextBlock Text='{Binding Status}' />
+									<TextBlock Text='{Binding Directory}'
+											   Foreground='{Binding BrushType, Converter={StaticResource brushTypeToForegroundConverter}}' />
+									<TextBlock Text='{Binding Status}'
+											   Foreground='{Binding BrushType, Converter={StaticResource brushTypeToForegroundConverter}}' />
 								</StackPanel>
 							</Border>
 						</DataTemplate>
@@ -97,11 +101,13 @@
 						 IsIndeterminate='True'
 						 Height='10'
 						 Visibility='Collapsed' />
-			<Button Content='Check now' Margin='0,5'
-					Click='buttonCheckNow_Click'/>
+			<Button Name='buttonCheckNow'
+					Content='Check now'
+					Margin='0,5'
+					Click='buttonCheckNow_Click' />
 			<CheckBox IsChecked='{Binding Path=Topmost, ElementName=mainWindow}'
 					  Content='Topmost'
-					  Margin='3,5'/>
+					  Margin='3,5' />
 			<my:NumericUpDown Height='23'
 							  Name='numericUpDown1'
 							  Width='80'
