@@ -18,6 +18,7 @@ using System.Threading.Tasks;
 using SharedClasses;
 using Microsoft.Windows.Controls;
 using System.Windows.Markup;
+using System.Windows.Interop;
 
 namespace TestingMonitorSubversion
 {
@@ -32,16 +33,42 @@ namespace TestingMonitorSubversion
 		public MainWindow()
 		{
 			InitializeComponent();
+			WindowMessagesInterop.InitializeClientMessages();
+		}
+
+		protected override void OnSourceInitialized(EventArgs e)
+		{
+			base.OnSourceInitialized(e);
+			HwndSource source = PresentationSource.FromVisual(this) as HwndSource;
+			source.AddHook(WndProc);
+		}
+
+		private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+		{
+			WindowMessagesInterop.MessageTypes mt;
+			WindowMessagesInterop.ClientHandleMessage(msg, wParam, lParam, out mt);
+			if (mt == WindowMessagesInterop.MessageTypes.Show)
+				ShowForm();
+			else if (mt == WindowMessagesInterop.MessageTypes.Hide)
+				this.Hide();
+			else if (mt == WindowMessagesInterop.MessageTypes.Close)
+				this.Close();
+			return IntPtr.Zero;
+		}
+
+		private void ShowForm()
+		{
+			this.Show();
+			this.Activate();
+			if (this.WindowState == System.Windows.WindowState.Minimized)
+				this.WindowState = System.Windows.WindowState.Normal;
 		}
 
 		private void Window_Loaded(object sender, RoutedEventArgs e)
 		{
 			trayIcon.BalloonTipClicked += delegate
 			{
-				this.Show();
-				this.Activate();
-				if (this.WindowState == System.Windows.WindowState.Minimized)
-					this.WindowState = System.Windows.WindowState.Normal;
+				ShowForm();
 			};
 
 			ObservableCollection<MonitoredDirectory> tmpList = new ObservableCollection<MonitoredDirectory>();
@@ -203,7 +230,7 @@ namespace TestingMonitorSubversion
 
 		private void OnNotificationAreaIconDoubleClick(object sender, MouseButtonEventArgs e)
 		{
-			this.Show();
+			ShowForm();
 		}
 
 		private void OnMenuItemExitClick(object sender, EventArgs e)
@@ -213,7 +240,7 @@ namespace TestingMonitorSubversion
 
 		private void OnMenuItemShowClick(object sender, EventArgs e)
 		{
-			this.Show();
+			ShowForm();
 		}
 
 		private void buttonCheckNow_Click(object sender, RoutedEventArgs e)
