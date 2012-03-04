@@ -63,7 +63,8 @@
 							<Border CornerRadius='3'
 									Padding='5'
 									Margin='3'
-									Background='{Binding BrushType, Converter={StaticResource brushTypeToBrushConverter}}'>
+									Background='{Binding BrushType, Converter={StaticResource brushTypeToBrushConverter}}'
+									MouseLeftButtonDown='Border_MouseLeftButtonDown'>
 								<StackPanel Orientation='Vertical'>
 									<TextBlock Text='{Binding Directory}'
 											   Foreground='{Binding BrushType, Converter={StaticResource brushTypeToForegroundConverter}}' />

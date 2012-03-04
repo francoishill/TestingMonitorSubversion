@@ -225,6 +225,16 @@ namespace TestingMonitorSubversion
 		{
 			CheckNow();
 		}
+
+		private void Border_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+		{
+			if (e.ClickCount == 2)
+			{
+				MonitoredDirectory md = (sender as Border).DataContext as MonitoredDirectory;
+				this.WindowState = System.Windows.WindowState.Minimized;
+				Process.Start("explorer", "/select, " + md.Directory);
+			}
+		}
 	}
 
 	public class MonitoredCategory : INotifyPropertyChanged
