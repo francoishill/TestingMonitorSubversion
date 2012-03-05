@@ -85,6 +85,7 @@ namespace TestingMonitorSubversion
 			tmpList.Add(new MonitoredDirectory(@"C:\Users\francois\Documents\Visual Studio 2010\Projects\TestingSharedClasses"));
 			tmpList.Add(new MonitoredDirectory(@"C:\Users\francois\Documents\Visual Studio 2010\Projects\QuickAccess"));
 			tmpList.Add(new MonitoredDirectory(@"C:\Users\francois\Documents\Visual Studio 2010\Projects\TestingMonitorSubversion"));
+			tmpList.Add(new MonitoredDirectory(@"C:\Users\francois\Documents\Visual Studio 2010\Projects\GenericTextFunctions"));
 			monitoredList.Add(new MonitoredCategory("Personal", tmpList));
 
 			treeViewMonitoredDirectories.ItemsSource = monitoredList;
@@ -134,6 +135,7 @@ namespace TestingMonitorSubversion
 				foreach (MonitoredCategory cat in monitoredList)
 					foreach (MonitoredDirectory md in cat.MonitoredDirectories)
 						md.BrushType = BrushTypeEnum.Default;
+
 
 				foreach (MonitoredCategory cat in monitoredList)
 				{
