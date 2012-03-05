@@ -136,7 +136,7 @@ namespace TestingMonitorSubversion
 					foreach (MonitoredDirectory md in cat.MonitoredDirectories)
 						md.BrushType = BrushTypeEnum.Default;
 
-
+				bool AnyChangesFound = false;
 				foreach (MonitoredCategory cat in monitoredList)
 				{
 					List<string> ChangedDirectories = new List<string>();
@@ -176,7 +176,10 @@ namespace TestingMonitorSubversion
 									if (MustAdd)
 									{
 										if (!ChangedDirectories.Contains(md.Directory))
+										{
+											AnyChangesFound = true;
 											ChangedDirectories.Add(md.Directory);
+										}
 
 										string strtoadd = evtargs.Data;
 										if (strtoadd.Contains(md.Directory))
@@ -207,6 +210,8 @@ namespace TestingMonitorSubversion
 					ChangedDirectories.Clear();
 					ChangedDirectories = null;
 				}
+				if (!AnyChangesFound)
+					trayIcon.ShowBalloonTip(2000, "No changes", "No subversion changes in any category", System.Windows.Forms.ToolTipIcon.Info);
 
 				progessBar1.Visibility = System.Windows.Visibility.Collapsed;
 				buttonCheckNow.IsEnabled = true;
