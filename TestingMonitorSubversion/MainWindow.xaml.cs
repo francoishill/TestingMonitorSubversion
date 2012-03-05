@@ -136,11 +136,9 @@ namespace TestingMonitorSubversion
 					foreach (MonitoredDirectory md in cat.MonitoredDirectories)
 						md.BrushType = BrushTypeEnum.Default;
 
-				bool AnyChangesFound = false;
+				List<string> ChangedDirectories = new List<string>();
 				foreach (MonitoredCategory cat in monitoredList)
 				{
-					List<string> ChangedDirectories = new List<string>();
-
 					ThreadingInterop.PerformVoidFunctionSeperateThread(() =>
 					{
 						Parallel.ForEach(
@@ -176,10 +174,7 @@ namespace TestingMonitorSubversion
 									if (MustAdd)
 									{
 										if (!ChangedDirectories.Contains(md.Directory))
-										{
-											AnyChangesFound = true;
 											ChangedDirectories.Add(md.Directory);
-										}
 
 										string strtoadd = evtargs.Data;
 										if (strtoadd.Contains(md.Directory))
@@ -200,18 +195,17 @@ namespace TestingMonitorSubversion
 								md.BrushType = string.IsNullOrWhiteSpace(md.Status) ? BrushTypeEnum.Success : BrushTypeEnum.Error;
 							});
 					});
-
-					if (ChangedDirectories.Count > 0)
-						trayIcon.ShowBalloonTip(
-							3000,
-							string.Format("Changes: {0}", cat.CategoryName),
-							string.Join(Environment.NewLine, ChangedDirectories.Select(d => d.Split('\\')[d.Split('\\').Length - 1])),
-							System.Windows.Forms.ToolTipIcon.Warning);
-					ChangedDirectories.Clear();
-					ChangedDirectories = null;
 				}
-				if (!AnyChangesFound)
+				if (ChangedDirectories.Count > 0)
+					trayIcon.ShowBalloonTip(
+						3000,
+						"Subversion changes",//string.Format("Changes: {0}", cat.CategoryName),
+						string.Join(Environment.NewLine, ChangedDirectories.Select(d => d.Split('\\')[d.Split('\\').Length - 1])),
+						System.Windows.Forms.ToolTipIcon.Warning);
+				else
 					trayIcon.ShowBalloonTip(2000, "No changes", "No subversion changes in any category", System.Windows.Forms.ToolTipIcon.Info);
+				ChangedDirectories.Clear();
+				ChangedDirectories = null;					
 
 				progessBar1.Visibility = System.Windows.Visibility.Collapsed;
 				buttonCheckNow.IsEnabled = true;
