@@ -11,7 +11,7 @@
 		Name='mainWindow'
 		Icon='app.ico'
 		Width="1000"
-		Topmost='True'
+		Topmost='False'
 		Loaded='Window_Loaded'
 		WindowStyle='None'
 		WindowStartupLocation='CenterScreen'>

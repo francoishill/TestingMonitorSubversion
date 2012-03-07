@@ -71,22 +71,35 @@ namespace TestingMonitorSubversion
 				ShowForm();
 			};
 
-			ObservableCollection<MonitoredDirectory> tmpList = new ObservableCollection<MonitoredDirectory>();
-			tmpList.Add(new MonitoredDirectory(@"C:\Programming\Wadiso6\Wadiso6Lib"));
-			tmpList.Add(new MonitoredDirectory(@"C:\Programming\GLSCore"));
-			tmpList.Add(new MonitoredDirectory(@"C:\Programming\GLSCore6"));
-			tmpList.Add(new MonitoredDirectory(@"C:\Programming\Sewsan4\SewsanLib"));
-			tmpList.Add(new MonitoredDirectory(@"C:\Programming\Sewsan6\Sewsan6Lib"));
-			tmpList.Add(new MonitoredDirectory(@"C:\Programming\Wadiso5\W5Source"));
-			monitoredList.Add(new MonitoredCategory("Work", tmpList));
+			//ObservableCollection<MonitoredDirectory> tmpList = new ObservableCollection<MonitoredDirectory>();
+			
+			//tmpList.Add(new MonitoredDirectory(@"C:\Programming\Wadiso6\Wadiso6Lib"));
+			//tmpList.Add(new MonitoredDirectory(@"C:\Programming\GLSCore"));
+			//tmpList.Add(new MonitoredDirectory(@"C:\Programming\GLSCore6"));
+			//tmpList.Add(new MonitoredDirectory(@"C:\Programming\Sewsan4\SewsanLib"));
+			//tmpList.Add(new MonitoredDirectory(@"C:\Programming\Sewsan6\Sewsan6Lib"));
+			//tmpList.Add(new MonitoredDirectory(@"C:\Programming\Wadiso5\W5Source"));
+			//monitoredList.Add(new MonitoredCategory("Work", tmpList));
 
-			tmpList = new ObservableCollection<MonitoredDirectory>();
-			tmpList.Add(new MonitoredDirectory(@"C:\Users\francois\Documents\Visual Studio 2010\Projects\SharedClasses"));
-			tmpList.Add(new MonitoredDirectory(@"C:\Users\francois\Documents\Visual Studio 2010\Projects\TestingSharedClasses"));
-			tmpList.Add(new MonitoredDirectory(@"C:\Users\francois\Documents\Visual Studio 2010\Projects\QuickAccess"));
-			tmpList.Add(new MonitoredDirectory(@"C:\Users\francois\Documents\Visual Studio 2010\Projects\TestingMonitorSubversion"));
-			tmpList.Add(new MonitoredDirectory(@"C:\Users\francois\Documents\Visual Studio 2010\Projects\GenericTextFunctions"));
-			monitoredList.Add(new MonitoredCategory("Personal", tmpList));
+			//Work|C:\Programming\Wadiso6\Wadiso6Lib,C:\Programming\GLSCore,C:\Programming\GLSCore6,C:\Programming\Sewsan4\SewsanLib,C:\Programming\Sewsan6\Sewsan6Lib,C:\Programming\Wadiso5\W5Source|Personal|C:\Users\francois\Documents\Visual Studio 2010\Projects\SharedClasses,C:\Users\francois\Documents\Visual Studio 2010\Projects\TestingSharedClasses,C:\Users\francois\Documents\Visual Studio 2010\Projects\QuickAccess,C:\Users\francois\Documents\Visual Studio 2010\Projects\TestingMonitorSubversion,C:\Users\francois\Documents\Visual Studio 2010\Projects\GenericTextFunctions
+
+			GenericSettings.EnsureAllSettingsAreInitialized();
+			var list = GlobalSettings.SubversionSettings.Instance.GetGroupedMonitoredList();
+			foreach (string cat in list.Keys)
+			{
+				ObservableCollection<MonitoredDirectory> tmpList = new ObservableCollection<MonitoredDirectory>();
+				foreach (string item in list[cat])
+					tmpList.Add(new MonitoredDirectory(item));
+				monitoredList.Add(new MonitoredCategory(cat, tmpList));
+			}
+
+			//tmpList = new ObservableCollection<MonitoredDirectory>();
+			//tmpList.Add(new MonitoredDirectory(@"C:\Users\francois\Documents\Visual Studio 2010\Projects\SharedClasses"));
+			//tmpList.Add(new MonitoredDirectory(@"C:\Users\francois\Documents\Visual Studio 2010\Projects\TestingSharedClasses"));
+			//tmpList.Add(new MonitoredDirectory(@"C:\Users\francois\Documents\Visual Studio 2010\Projects\QuickAccess"));
+			//tmpList.Add(new MonitoredDirectory(@"C:\Users\francois\Documents\Visual Studio 2010\Projects\TestingMonitorSubversion"));
+			//tmpList.Add(new MonitoredDirectory(@"C:\Users\francois\Documents\Visual Studio 2010\Projects\GenericTextFunctions"));
+			//monitoredList.Add(new MonitoredCategory("Personal", tmpList));
 
 			treeViewMonitoredDirectories.ItemsSource = monitoredList;
 			treeViewMonitoredDirectories.UpdateLayout();
@@ -98,7 +111,7 @@ namespace TestingMonitorSubversion
 		}
 		private bool InitialShortTimeChanged = false;
 
-		public event PropertyChangedEventHandler  PropertyChanged = new PropertyChangedEventHandler(delegate { });
+		public event PropertyChangedEventHandler PropertyChanged = new PropertyChangedEventHandler(delegate { });
 		public void OnPropertyChanged(string propertyName) { PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
 
 		public int TimerInterval
@@ -205,7 +218,7 @@ namespace TestingMonitorSubversion
 				else
 					trayIcon.ShowBalloonTip(2000, "No changes", "No subversion changes in any category", System.Windows.Forms.ToolTipIcon.Info);
 				ChangedDirectories.Clear();
-				ChangedDirectories = null;					
+				ChangedDirectories = null;
 
 				progessBar1.Visibility = System.Windows.Visibility.Collapsed;
 				buttonCheckNow.IsEnabled = true;
@@ -279,7 +292,7 @@ namespace TestingMonitorSubversion
 			this.IsExpanded = true;
 		}
 
-		public event PropertyChangedEventHandler  PropertyChanged = new PropertyChangedEventHandler(delegate { });
+		public event PropertyChangedEventHandler PropertyChanged = new PropertyChangedEventHandler(delegate { });
 		public void OnPropertyChanged(string propertyName) { PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
 	}
 
@@ -299,7 +312,7 @@ namespace TestingMonitorSubversion
 			this.BrushType = BrushTypeEnum.Success;
 		}
 
-		public event PropertyChangedEventHandler  PropertyChanged = new PropertyChangedEventHandler(delegate { });
+		public event PropertyChangedEventHandler PropertyChanged = new PropertyChangedEventHandler(delegate { });
 		public void OnPropertyChanged(string propertyName) { PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
 	}
 
