@@ -6,7 +6,7 @@
 				xmlns:sharedclasses='clr-namespace:SharedClasses'
 				xmlns:forms="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
 				xmlns:my="clr-namespace:eisiWare;assembly=NumericUpDown"
-				Title="MainWindow"
+				Title="Monitor Subversion"
 				Height="700"
 				Name='mainWindow'
 				Icon='app.ico'
