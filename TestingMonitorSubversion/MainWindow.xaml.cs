@@ -283,18 +283,43 @@ namespace TestingMonitorSubversion
 
 		private void MenuItemSvnUpdate_Click(object sender, EventArgs e)
 		{
-			MonitoredDirectory md = (sender as MenuItem).DataContext as MonitoredDirectory;
-			Process.Start(
-				@"C:\Program Files\TortoiseSVN\bin\TortoiseProc.exe",
-				@"/command:update /path:""" + md.Directory + @"""");
+			MenuItem mi = sender as MenuItem;
+			MonitoredDirectory md = mi.DataContext as MonitoredDirectory;
+			ContextMenu cm = mi.Parent as ContextMenu;
+			if (cm == null) return;
+			cm.IsOpen = false;
+
+			ThreadingInterop.PerformVoidFunctionSeperateThread(() =>
+			{
+				Process svn = StartTortoiseProc(TortoiseCommands.Update, md);
+				svn.WaitForExit();
+				Dispatcher.BeginInvoke((Action)delegate { CheckNow(md); });
+			});
 		}
 
 		private void MenuItemSvnCommit_Click(object sender, EventArgs e)
 		{
-			MonitoredDirectory md = (sender as MenuItem).DataContext as MonitoredDirectory;
-			Process.Start(
+			MenuItem mi = sender as MenuItem;
+			MonitoredDirectory md = mi.DataContext as MonitoredDirectory;
+			ContextMenu cm = mi.Parent as ContextMenu;
+			if (cm == null) return;
+			cm.IsOpen = false;
+
+			ThreadingInterop.PerformVoidFunctionSeperateThread(() =>
+			{
+				Process svn = StartTortoiseProc(TortoiseCommands.Commit, md);
+				svn.WaitForExit();
+				Dispatcher.BeginInvoke((Action)delegate { CheckNow(md); });
+			});
+		}
+
+		enum TortoiseCommands { Commit, Update };
+		private Process StartTortoiseProc(TortoiseCommands tortoiseCommand, MonitoredDirectory monitoredDirectory)
+		{
+			return Process.Start(
 				@"C:\Program Files\TortoiseSVN\bin\TortoiseProc.exe",
-				@"/command:commit /path:""" + md.Directory + @"""");
+				"/command:" + tortoiseCommand.ToString().ToLower() 
+				+ @" /path:""" + monitoredDirectory.Directory + @"""");
 		}
 
 		private void MenuItemCheckOnlyThisDirectoy_Click(object sender, EventArgs e)
