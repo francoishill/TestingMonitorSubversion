@@ -72,7 +72,7 @@ namespace TestingMonitorSubversion
 			};
 
 			//ObservableCollection<MonitoredDirectory> tmpList = new ObservableCollection<MonitoredDirectory>();
-			
+
 			//tmpList.Add(new MonitoredDirectory(@"C:\Programming\Wadiso6\Wadiso6Lib"));
 			//tmpList.Add(new MonitoredDirectory(@"C:\Programming\GLSCore"));
 			//tmpList.Add(new MonitoredDirectory(@"C:\Programming\GLSCore6"));
@@ -90,7 +90,7 @@ namespace TestingMonitorSubversion
 				ObservableCollection<MonitoredDirectory> tmpList = new ObservableCollection<MonitoredDirectory>();
 				foreach (string item in list[cat])
 					tmpList.Add(new MonitoredDirectory(item));
-				monitoredList.Add(new MonitoredCategory(cat, tmpList));
+				monitoredList.Add(new MonitoredCategory(cat, new ObservableCollection<MonitoredDirectory>(tmpList.OrderBy(md => md.Directory))));
 			}
 
 			//tmpList = new ObservableCollection<MonitoredDirectory>();
@@ -134,7 +134,7 @@ namespace TestingMonitorSubversion
 			CheckNow();
 		}
 
-		private void CheckNow()
+		private void CheckNow(MonitoredDirectory checkOnlyThisDirectory = null)
 		{
 			if (!IsBusyChecking)
 			{
@@ -147,7 +147,8 @@ namespace TestingMonitorSubversion
 
 				foreach (MonitoredCategory cat in monitoredList)
 					foreach (MonitoredDirectory md in cat.MonitoredDirectories)
-						md.BrushType = BrushTypeEnum.Default;
+						if (checkOnlyThisDirectory == null || md == checkOnlyThisDirectory)
+							md.BrushType = BrushTypeEnum.Default;
 
 				List<string> ChangedDirectories = new List<string>();
 				foreach (MonitoredCategory cat in monitoredList)
@@ -158,6 +159,9 @@ namespace TestingMonitorSubversion
 							cat.MonitoredDirectories,
 							(md) =>
 							{
+								if (checkOnlyThisDirectory != null && md != checkOnlyThisDirectory)
+									return;
+
 								md.Status = "";
 								/*
 								SubversionCommand.Commit ? "commit -m\"" + logmessage + "\" \"" + tmpFolder + "\""
@@ -275,6 +279,28 @@ namespace TestingMonitorSubversion
 				this.WindowState = System.Windows.WindowState.Minimized;
 				Process.Start("explorer", "/select, " + md.Directory);
 			}
+		}
+
+		private void MenuItemSvnUpdate_Click(object sender, EventArgs e)
+		{
+			MonitoredDirectory md = (sender as MenuItem).DataContext as MonitoredDirectory;
+			Process.Start(
+				@"C:\Program Files\TortoiseSVN\bin\TortoiseProc.exe",
+				@"/command:update /path:""" + md.Directory + @"""");
+		}
+
+		private void MenuItemSvnCommit_Click(object sender, EventArgs e)
+		{
+			MonitoredDirectory md = (sender as MenuItem).DataContext as MonitoredDirectory;
+			Process.Start(
+				@"C:\Program Files\TortoiseSVN\bin\TortoiseProc.exe",
+				@"/command:commit /path:""" + md.Directory + @"""");
+		}
+
+		private void MenuItemCheckOnlyThisDirectoy_Click(object sender, EventArgs e)
+		{
+			MonitoredDirectory md = (sender as MenuItem).DataContext as MonitoredDirectory;
+			CheckNow(md);
 		}
 	}
 
