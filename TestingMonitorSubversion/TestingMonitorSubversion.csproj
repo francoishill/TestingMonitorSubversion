@@ -88,12 +88,6 @@
     <Compile Include="..\..\SharedClasses\NotifyIconWPF.cs">
       <Link>NotifyIconWPF.cs</Link>
     </Compile>
-    <Compile Include="..\..\SharedClasses\ThreadingInterop.cs">
-      <Link>ThreadingInterop.cs</Link>
-    </Compile>
-    <Compile Include="..\..\SharedClasses\WindowMessagesInterop.cs">
-      <Link>WindowMessagesInterop.cs</Link>
-    </Compile>
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
