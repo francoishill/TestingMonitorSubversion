@@ -209,6 +209,10 @@ namespace TestingMonitorSubversion
 
 								proc.WaitForExit();
 
+
+								proc.Dispose();
+								proc = null;
+
 								md.BrushType = string.IsNullOrWhiteSpace(md.Status) ? BrushTypeEnum.Success : BrushTypeEnum.Error;
 							});
 					});
@@ -284,6 +288,80 @@ namespace TestingMonitorSubversion
 			}
 		}
 
+		private void MenuItemSvnShowLogDialog_Click(object sender, EventArgs e)
+		{
+			MenuItem mi = sender as MenuItem;
+			MonitoredDirectory md = mi.DataContext as MonitoredDirectory;
+			ContextMenu cm = mi.Parent as ContextMenu;
+			if (cm == null) return;
+			cm.IsOpen = false;
+
+			ThreadingInterop.PerformVoidFunctionSeperateThread(() =>
+			{
+				Process svn = StartTortoiseProc(TortoiseCommands.Log, md);
+				svn.WaitForExit();
+				Dispatcher.BeginInvoke((Action)delegate { CheckNow(md); });
+			});
+		}
+
+		private void MenuItemSvnLoadLog_Click(object sender, EventArgs e)
+		{
+			MenuItem mi = sender as MenuItem;
+			MonitoredDirectory md = mi.DataContext as MonitoredDirectory;
+			ContextMenu cm = mi.Parent as ContextMenu;
+			if (cm == null) return;
+			cm.IsOpen = false;
+
+			ThreadingInterop.PerformVoidFunctionSeperateThread(() =>
+			{
+				string log = "";
+
+				Process proc = Process.Start(new ProcessStartInfo(@"C:\Program Files\TortoiseSVN\bin\svn.exe", "log -l 15 \"" + md.Directory + "\"")
+				{
+					RedirectStandardError = true,
+					RedirectStandardOutput = true,
+					CreateNoWindow = true,
+					UseShellExecute = false
+				});
+
+				proc.OutputDataReceived += (snder, evtargs) =>
+				{
+					bool MustAdd = true;
+					if (string.IsNullOrWhiteSpace(evtargs.Data))
+						MustAdd = false;
+					else
+					{
+						foreach (string s in FilterList_StartsWith)
+							if (evtargs.Data.StartsWith(s, StringComparison.InvariantCultureIgnoreCase))
+								MustAdd = false;
+					}
+					if (MustAdd)
+					{
+						string strtoadd = evtargs.Data;
+						if (strtoadd.Contains(md.Directory))
+							strtoadd = strtoadd.Replace(md.Directory, "...");
+						log += (log.Length > 0 ? Environment.NewLine : "") + strtoadd;
+					}
+				};
+				proc.ErrorDataReceived += (snder, evtargs) =>
+				{
+					if (!string.IsNullOrWhiteSpace(evtargs.Data))
+						log += (log.Length > 0 ? Environment.NewLine : "") + "Error: " + evtargs.Data;
+				};
+				proc.BeginErrorReadLine();
+				proc.BeginOutputReadLine();
+
+				proc.WaitForExit();
+				proc.Dispose();
+				proc = null;
+
+				Dispatcher.BeginInvoke((Action)delegate
+				{
+					textBoxLog.Text = log;
+				});
+			});
+		}
+
 		private void MenuItemSvnUpdate_Click(object sender, EventArgs e)
 		{
 			MenuItem mi = sender as MenuItem;
@@ -316,7 +394,7 @@ namespace TestingMonitorSubversion
 			});
 		}
 
-		enum TortoiseCommands { Commit, Update };
+		enum TortoiseCommands { Log, Commit, Update };
 		private Process StartTortoiseProc(TortoiseCommands tortoiseCommand, MonitoredDirectory monitoredDirectory)
 		{
 			return Process.Start(
@@ -329,6 +407,19 @@ namespace TestingMonitorSubversion
 		{
 			MonitoredDirectory md = (sender as MenuItem).DataContext as MonitoredDirectory;
 			CheckNow(md);
+		}
+
+		private void treeViewMonitoredDirectories_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+		{
+			MonitoredDirectory md = e.NewValue as MonitoredDirectory;
+			if (md == null)
+				return;
+			textBoxLog.Text = null;
+		}
+
+		private void OnContextMenuOpened(object sender, RoutedEventArgs e)
+		{
+			textBoxLog.Text = null;
 		}
 	}
 

@@ -24,6 +24,10 @@
 						 Color="Black" />
 	</Window.Resources>
 	<Grid>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width='4*' />
+			<ColumnDefinition Width='1*' />
+		</Grid.ColumnDefinitions>
 		<sharedclasses:NotificationAreaIcon x:Name='trayIcon'
 											Text="Monitoring Subversion"
 											Icon="app.ico"
@@ -41,7 +45,8 @@
 			</sharedclasses:NotificationAreaIcon.MenuItems>
 		</sharedclasses:NotificationAreaIcon>
 		<TreeView Name='treeViewMonitoredDirectories'
-				  Margin='10,10,100,10'>
+				  Margin='10,10,5,10'
+				  SelectedItemChanged='treeViewMonitoredDirectories_SelectedItemChanged'>
 			<TreeView.ItemContainerStyle>
 				<Style TargetType="TreeViewItem">
 					<Setter Property="IsExpanded"
@@ -65,9 +70,13 @@
 									Background='{Binding BrushType, Converter={StaticResource brushTypeToBrushConverter}}'
 									MouseLeftButtonDown='Border_MouseLeftButtonDown'>
 								<Border.ContextMenu>
-									<ContextMenu>
+									<ContextMenu Opened='OnContextMenuOpened'>
 										<MenuItem Header='Recheck this dir'
 												  Click='MenuItemCheckOnlyThisDirectoy_Click' />
+										<MenuItem Header='_Show log dialog (svn)'
+												  Click='MenuItemSvnShowLogDialog_Click' />
+										<MenuItem Header='Load _log (svn)'
+												  Click='MenuItemSvnLoadLog_Click' />
 										<MenuItem Header='_Update (svn)'
 												  Click='MenuItemSvnUpdate_Click' />
 										<MenuItem Header='_Commit (svn)'
@@ -86,51 +95,61 @@
 				</HierarchicalDataTemplate>
 			</TreeView.ItemTemplate>
 		</TreeView>
-		<StackPanel Orientation='Horizontal'
-					VerticalAlignment='Top'
-					HorizontalAlignment='Right'
-					Margin='3'>
-			<Button Content='-'
-					Padding='6,3'
-					Margin='3,0'
-					Background='Transparent'
-					Focusable='False'
-					Click='buttonMinimize_Click' />
-			<Button Content='X'
-					Padding='6,3'
-					Background='Transparent'
-					Focusable='False'
-					Click='buttonClose_Click' />
-		</StackPanel>
-		<StackPanel VerticalAlignment='Bottom'
-					HorizontalAlignment='Right'
-					Margin='3'>
-			<ProgressBar Name='progessBar1'
-						 IsIndeterminate='True'
-						 Height='10'
-						 Visibility='Collapsed' />
-			<Button Name='buttonCheckNow'
-					Content='Check now'
-					Margin='0,5'
-					Click='buttonCheckNow_Click' />
-			<CheckBox IsChecked='{Binding Path=Topmost, ElementName=mainWindow}'
-					  Content='Topmost'
-					  Margin='3,5' />
-			<my:NumericUpDown Height='23'
-							  Name='numericUpDown1'
-							  Width='80'
-							  Value='{Binding Path=TimerInterval, ElementName=mainWindow}'
-							  Step='500' />
-			<Border CornerRadius='5'
-					Background='#eee'
-					Width='80'
-					Height='50'
-					PreviewMouseLeftButtonDown='Border_PreviewMouseLeftButtonDown_1'>
-				<TextBlock Text='DragMe'
-						   VerticalAlignment='Center'
-						   HorizontalAlignment='Center'
-						   Foreground='#777' />
-			</Border>
-		</StackPanel>
+		<GridSplitter Width='5' />
+		<DockPanel VerticalAlignment='Stretch'
+				   HorizontalAlignment='Stretch'
+				   Grid.Column='1'
+				   Margin='3'
+				   LastChildFill='True'>
+			<StackPanel Orientation='Horizontal'
+						HorizontalAlignment='Right'
+						DockPanel.Dock='Top'>
+				<Button Content='-'
+						Padding='6,3'
+						Margin='3,0'
+						Background='Transparent'
+						Focusable='False'
+						Click='buttonMinimize_Click' />
+				<Button Content='X'
+						Padding='6,3'
+						Background='Transparent'
+						Focusable='False'
+						Click='buttonClose_Click' />
+			</StackPanel>
+			<StackPanel DockPanel.Dock='Bottom'
+						VerticalAlignment='Bottom'
+						HorizontalAlignment='Right'
+						Margin='3'>
+				<ProgressBar Name='progessBar1'
+							 IsIndeterminate='True'
+							 Height='10'
+							 Visibility='Collapsed' />
+				<Button Name='buttonCheckNow'
+						Content='Check now'
+						Margin='0,5'
+						Click='buttonCheckNow_Click' />
+				<CheckBox IsChecked='{Binding Path=Topmost, ElementName=mainWindow}'
+						  Content='Topmost'
+						  Margin='3,5' />
+				<my:NumericUpDown Height='23'
+								  Name='numericUpDown1'
+								  Width='80'
+								  Value='{Binding Path=TimerInterval, ElementName=mainWindow}'
+								  Step='500' />
+				<Border CornerRadius='5'
+						Background='#eee'
+						Width='80'
+						Height='50'
+						PreviewMouseLeftButtonDown='Border_PreviewMouseLeftButtonDown_1'>
+					<TextBlock Text='DragMe'
+							   VerticalAlignment='Center'
+							   HorizontalAlignment='Center'
+							   Foreground='#777' />
+				</Border>
+			</StackPanel>
+			<TextBox Name='textBoxLog'
+					 HorizontalScrollBarVisibility='Auto'
+					 VerticalScrollBarVisibility='Auto'/>
+		</DockPanel>
 	</Grid>
 </Window>
