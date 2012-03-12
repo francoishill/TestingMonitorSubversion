@@ -246,9 +246,12 @@ namespace TestingMonitorSubversion
 			this.Close();
 		}
 
-		private void OnNotificationAreaIconDoubleClick(object sender, MouseButtonEventArgs e)
+		private void OnNotificationArayIconMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
 		{
-			ShowForm();
+			if (this.IsVisible)
+				this.Hide();
+			else
+				ShowForm();
 		}
 
 		private void OnMenuItemExitClick(object sender, EventArgs e)
@@ -318,7 +321,7 @@ namespace TestingMonitorSubversion
 		{
 			return Process.Start(
 				@"C:\Program Files\TortoiseSVN\bin\TortoiseProc.exe",
-				"/command:" + tortoiseCommand.ToString().ToLower() 
+				"/command:" + tortoiseCommand.ToString().ToLower()
 				+ @" /path:""" + monitoredDirectory.Directory + @"""");
 		}
 
