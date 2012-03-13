@@ -29,32 +29,55 @@ namespace TestingMonitorSubversion
 	{
 		ObservableCollection<MonitoredCategory> monitoredList = new ObservableCollection<MonitoredCategory>();
 		System.Windows.Forms.Timer timer;
+		NamedPipesInterop.NamedPipeClient pipeclient;
 
 		public MainWindow()
 		{
 			InitializeComponent();
-			WindowMessagesInterop.InitializeClientMessages();
+			StartPipeClient();
+			//WindowMessagesInterop.InitializeClientMessages();
 		}
 
-		protected override void OnSourceInitialized(EventArgs e)
+		private void StartPipeClient()
 		{
-			base.OnSourceInitialized(e);
-			HwndSource source = PresentationSource.FromVisual(this) as HwndSource;
-			source.AddHook(WndProc);
+			pipeclient = NamedPipesInterop.NamedPipeClient.StartNewPipeClient(
+				ActionOnError: (e) => { Console.WriteLine("Error occured: " + e.GetException().Message); },
+				ActionOnMessageReceived: (m) =>
+				{
+					if (m.MessageType == PipeMessageTypes.AcknowledgeClientRegistration)
+						Console.WriteLine("Client successfully registered.");
+					else
+					{
+						if (m.MessageType == PipeMessageTypes.Show)
+							Dispatcher.BeginInvoke((Action)delegate { ShowForm(); });
+						else if (m.MessageType == PipeMessageTypes.Hide)
+							Dispatcher.BeginInvoke((Action)delegate { this.Hide(); });
+						else if (m.MessageType == PipeMessageTypes.Close)
+							Dispatcher.BeginInvoke((Action)delegate { this.Close(); });
+					}
+				});
+			this.Closing += delegate { if (pipeclient != null) { pipeclient.ForceCancelRetryLoop = true; } };
 		}
 
-		private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
-		{
-			WindowMessagesInterop.MessageTypes mt;
-			WindowMessagesInterop.ClientHandleMessage(msg, wParam, lParam, out mt);
-			if (mt == WindowMessagesInterop.MessageTypes.Show)
-				ShowForm();
-			else if (mt == WindowMessagesInterop.MessageTypes.Hide)
-				this.Hide();
-			else if (mt == WindowMessagesInterop.MessageTypes.Close)
-				this.Close();
-			return IntPtr.Zero;
-		}
+		//protected override void OnSourceInitialized(EventArgs e)
+		//{
+		//	base.OnSourceInitialized(e);
+		//	HwndSource source = PresentationSource.FromVisual(this) as HwndSource;
+		//	source.AddHook(WndProc);
+		//}
+
+		//private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+		//{
+		//	WindowMessagesInterop.MessageTypes mt;
+		//	WindowMessagesInterop.ClientHandleMessage(msg, wParam, lParam, out mt);
+		//	if (mt == WindowMessagesInterop.MessageTypes.Show)
+		//		ShowForm();
+		//	else if (mt == WindowMessagesInterop.MessageTypes.Hide)
+		//		this.Hide();
+		//	else if (mt == WindowMessagesInterop.MessageTypes.Close)
+		//		this.Close();
+		//	return IntPtr.Zero;
+		//}
 
 		private void ShowForm()
 		{
