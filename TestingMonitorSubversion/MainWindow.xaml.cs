@@ -29,16 +29,16 @@ namespace TestingMonitorSubversion
 	{
 		ObservableCollection<MonitoredCategory> monitoredList = new ObservableCollection<MonitoredCategory>();
 		System.Windows.Forms.Timer timer;
-		NamedPipesInterop.NamedPipeClient pipeclient;
+		//NamedPipesInterop.NamedPipeClient pipeclient;
 
 		public MainWindow()
 		{
 			InitializeComponent();
-			StartPipeClient();
-			//WindowMessagesInterop.InitializeClientMessages();
+			//StartPipeClient();
+			WindowMessagesInterop.InitializeClientMessages();
 		}
 
-		private void StartPipeClient()
+		/*private void StartPipeClient()
 		{
 			pipeclient = NamedPipesInterop.NamedPipeClient.StartNewPipeClient(
 				ActionOnError: (e) => { Console.WriteLine("Error occured: " + e.GetException().Message); },
@@ -57,27 +57,27 @@ namespace TestingMonitorSubversion
 					}
 				});
 			this.Closing += delegate { if (pipeclient != null) { pipeclient.ForceCancelRetryLoop = true; } };
+		}*/
+
+		protected override void OnSourceInitialized(EventArgs e)
+		{
+			base.OnSourceInitialized(e);
+			HwndSource source = PresentationSource.FromVisual(this) as HwndSource;
+			source.AddHook(WndProc);
 		}
 
-		//protected override void OnSourceInitialized(EventArgs e)
-		//{
-		//	base.OnSourceInitialized(e);
-		//	HwndSource source = PresentationSource.FromVisual(this) as HwndSource;
-		//	source.AddHook(WndProc);
-		//}
-
-		//private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
-		//{
-		//	WindowMessagesInterop.MessageTypes mt;
-		//	WindowMessagesInterop.ClientHandleMessage(msg, wParam, lParam, out mt);
-		//	if (mt == WindowMessagesInterop.MessageTypes.Show)
-		//		ShowForm();
-		//	else if (mt == WindowMessagesInterop.MessageTypes.Hide)
-		//		this.Hide();
-		//	else if (mt == WindowMessagesInterop.MessageTypes.Close)
-		//		this.Close();
-		//	return IntPtr.Zero;
-		//}
+		private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+		{
+			WindowMessagesInterop.MessageTypes mt;
+			WindowMessagesInterop.ClientHandleMessage(msg, wParam, lParam, out mt);
+			if (mt == WindowMessagesInterop.MessageTypes.Show)
+				ShowForm();
+			else if (mt == WindowMessagesInterop.MessageTypes.Hide)
+				this.Hide();
+			else if (mt == WindowMessagesInterop.MessageTypes.Close)
+				this.Close();
+			return IntPtr.Zero;
+		}
 
 		private void ShowForm()
 		{

@@ -7,7 +7,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{77FA57A1-5557-49D1-9B0E-AC5A236D20B8}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <ApplicationRevision>2</ApplicationRevision>
+    <ApplicationRevision>3</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>TestingMonitorSubversion</RootNamespace>
@@ -85,11 +85,11 @@
       <Link>BindableRichTextBox.xaml.cs</Link>
       <DependentUpon>BindableRichTextBox.xaml</DependentUpon>
     </Compile>
-    <Compile Include="..\..\SharedClasses\NamedPipesInterop.cs">
-      <Link>NamedPipesInterop.cs</Link>
-    </Compile>
     <Compile Include="..\..\SharedClasses\NotifyIconWPF.cs">
       <Link>NotifyIconWPF.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SharedClasses\WindowMessagesInterop.cs">
+      <Link>WindowMessagesInterop.cs</Link>
     </Compile>
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
