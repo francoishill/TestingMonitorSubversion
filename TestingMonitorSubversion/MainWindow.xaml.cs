@@ -64,6 +64,10 @@ namespace TestingMonitorSubversion
 			base.OnSourceInitialized(e);
 			HwndSource source = PresentationSource.FromVisual(this) as HwndSource;
 			source.AddHook(WndProc);
+
+			var handle = new WindowInteropHelper(Application.Current.MainWindow).Handle;
+			if (!Win32Api.RegisterHotKey(handle, Win32Api.Hotkey1, Win32Api.MOD_WIN, (int)System.Windows.Forms.Keys.S))
+				UserMessages.ShowWarningMessage("TestingMonitorSubversion could not register hotkey WinKey + V");
 		}
 
 		private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
@@ -76,6 +80,16 @@ namespace TestingMonitorSubversion
 				this.Hide();
 			else if (mt == WindowMessagesInterop.MessageTypes.Close)
 				this.Close();
+			else if (msg == Win32Api.WM_HOTKEY)
+			{
+				if (wParam == new IntPtr(Win32Api.Hotkey1))
+				{
+					if (this.Visibility != System.Windows.Visibility.Visible)
+						ShowForm();
+					else
+						this.Hide();
+				}
+			}
 			return IntPtr.Zero;
 		}
 
@@ -240,14 +254,17 @@ namespace TestingMonitorSubversion
 							});
 					});
 				}
-				if (ChangedDirectories.Count > 0)
-					trayIcon.ShowBalloonTip(
-						3000,
-						"Subversion changes",//string.Format("Changes: {0}", cat.CategoryName),
-						string.Join(Environment.NewLine, ChangedDirectories.Select(d => d.Split('\\')[d.Split('\\').Length - 1])),
-						System.Windows.Forms.ToolTipIcon.Warning);
-				else
-					trayIcon.ShowBalloonTip(2000, "No changes", "No subversion changes in any category", System.Windows.Forms.ToolTipIcon.Info);
+				if (null == checkOnlyThisDirectory)
+				{
+					if (ChangedDirectories.Count > 0)
+						trayIcon.ShowBalloonTip(
+							3000,
+							"Subversion changes",//string.Format("Changes: {0}", cat.CategoryName),
+							string.Join(Environment.NewLine, ChangedDirectories.Select(d => d.Split('\\')[d.Split('\\').Length - 1])),
+							System.Windows.Forms.ToolTipIcon.Warning);
+					else
+						trayIcon.ShowBalloonTip(2000, "No changes", "No subversion changes in any category", System.Windows.Forms.ToolTipIcon.Info);
+				}
 				ChangedDirectories.Clear();
 				ChangedDirectories = null;
 
