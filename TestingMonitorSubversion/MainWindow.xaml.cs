@@ -36,6 +36,17 @@ namespace TestingMonitorSubversion
 			InitializeComponent();
 			//StartPipeClient();
 			WindowMessagesInterop.InitializeClientMessages();
+
+			//TODO: Add reference to SharpSvn.dll, but is only .NET 2.0 so need to add config file: TestingMonitorSubersion.exe.config with correct settings
+			int todo;
+			/*var client = new SvnClient();
+			var path = @"C:\Programming\Wadiso6\Wadiso6Lib";
+			//Collection<SvnListChangeListEventArgs> list;
+			//client.GetChangeList(path, out list);
+			//Collection<SvnLogEventArgs> list;
+			//client.GetLog(path, out list);
+			Collection<SvnStatusEventArgs> list;
+			client.GetStatus(path, out list);*/
 		}
 
 		/*private void StartPipeClient()
