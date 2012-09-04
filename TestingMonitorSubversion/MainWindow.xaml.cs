@@ -16,7 +16,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using SharedClasses;
-using Microsoft.Windows.Controls;
+//using Microsoft.Windows.Controls;
 using System.Windows.Markup;
 using System.Windows.Interop;
 
@@ -276,7 +276,8 @@ namespace TestingMonitorSubversion
 
 		private void Border_PreviewMouseLeftButtonDown_1(object sender, MouseButtonEventArgs e)
 		{
-			this.DragMove();
+			if (Mouse.RightButton == MouseButtonState.Pressed)
+				this.DragMove();
 		}
 
 		private void buttonMinimize_Click(object sender, RoutedEventArgs e)

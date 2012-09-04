@@ -14,7 +14,8 @@
 		Topmost='False'
 		Loaded='Window_Loaded'
 		WindowStyle='None'
-		WindowStartupLocation='CenterScreen'>
+		WindowStartupLocation='CenterScreen'
+		PreviewMouseLeftButtonDown='Border_PreviewMouseLeftButtonDown_1'>
 	<Window.Resources>
 		<local:BrushTypeToBrushConverter x:Key='brushTypeToBrushConverter' />
 		<local:BrushTypeToForegroundConverter x:Key='brushTypeToForegroundConverter' />
@@ -139,8 +140,7 @@
 				<Border CornerRadius='5'
 						Background='#eee'
 						Width='80'
-						Height='50'
-						PreviewMouseLeftButtonDown='Border_PreviewMouseLeftButtonDown_1'>
+						Height='50'>
 					<TextBlock Text='DragMe'
 							   VerticalAlignment='Center'
 							   HorizontalAlignment='Center'
