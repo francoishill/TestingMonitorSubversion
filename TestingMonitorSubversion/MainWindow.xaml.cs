@@ -19,6 +19,7 @@ using SharedClasses;
 //using Microsoft.Windows.Controls;
 using System.Windows.Markup;
 using System.Windows.Interop;
+using System.IO;
 
 namespace TestingMonitorSubversion
 {
@@ -182,8 +183,15 @@ namespace TestingMonitorSubversion
 			CheckNow();
 		}
 
+		private const string svnPath = @"C:\Program Files\TortoiseSVN\bin\svn.exe";
 		private void CheckNow(MonitoredDirectory checkOnlyThisDirectory = null)
 		{
+			if (!File.Exists(svnPath))
+			{
+				UserMessages.ShowErrorMessage("Cannot use any SVN functionality, file missing: " + svnPath);
+				return;
+			}
+
 			if (!IsBusyChecking)
 			{
 				buttonCheckNow.IsEnabled = false;
@@ -218,7 +226,8 @@ namespace TestingMonitorSubversion
 									: svnCommand == SubversionCommand.StatusLocal ? "status \"" + tmpFolder + "\""
 									: "";
 								*/
-								Process proc = Process.Start(new ProcessStartInfo(@"C:\Program Files\TortoiseSVN\bin\svn.exe", "status --show-updates \"" + md.Directory + "\"")
+
+								Process proc = Process.Start(new ProcessStartInfo(svnPath, "status --show-updates \"" + md.Directory + "\"")
 								{
 									RedirectStandardError = true,
 									RedirectStandardOutput = true,
