@@ -137,15 +137,6 @@
 								  Width='80'
 								  Value='{Binding Path=TimerInterval, ElementName=mainWindow}'
 								  Step='500' />
-				<Border CornerRadius='5'
-						Background='#eee'
-						Width='80'
-						Height='50'>
-					<TextBlock Text='DragMe'
-							   VerticalAlignment='Center'
-							   HorizontalAlignment='Center'
-							   Foreground='#777' />
-				</Border>
 			</StackPanel>
 			<TextBox Name='textBoxLog'
 					 HorizontalScrollBarVisibility='Auto'
