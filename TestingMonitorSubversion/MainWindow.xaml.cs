@@ -133,13 +133,30 @@ namespace TestingMonitorSubversion
 			//Work|C:\Programming\Wadiso6\Wadiso6Lib,C:\Programming\GLSCore,C:\Programming\GLSCore6,C:\Programming\Sewsan4\SewsanLib,C:\Programming\Sewsan6\Sewsan6Lib,C:\Programming\Wadiso5\W5Source|Personal|C:\Users\francois\Documents\Visual Studio 2010\Projects\SharedClasses,C:\Users\francois\Documents\Visual Studio 2010\Projects\TestingSharedClasses,C:\Users\francois\Documents\Visual Studio 2010\Projects\QuickAccess,C:\Users\francois\Documents\Visual Studio 2010\Projects\TestingMonitorSubversion,C:\Users\francois\Documents\Visual Studio 2010\Projects\GenericTextFunctions
 
 			GenericSettings.EnsureAllSettingsAreInitialized();
-			var list = GlobalSettings.SubversionSettings.Instance.GetGroupedMonitoredList();
-			foreach (string cat in list.Keys)
+			var dict = GlobalSettings.SubversionSettings.Instance.GetGroupedMonitoredList();
+			foreach (string cat in dict.Keys)
 			{
-				ObservableCollection<MonitoredDirectory> tmpList = new ObservableCollection<MonitoredDirectory>();
-				foreach (string item in list[cat])
-					tmpList.Add(new MonitoredDirectory(item));
-				monitoredList.Add(new MonitoredCategory(cat, new ObservableCollection<MonitoredDirectory>(tmpList.OrderBy(md => md.Directory))));
+				if (cat.Equals("AllInDir", StringComparison.InvariantCultureIgnoreCase))
+				{
+					var dir = dict[cat][0];
+					if (!Directory.Exists(dir))
+						UserMessages.ShowWarningMessage("Cannot use 'allindir' mode, directory not found: " + dir);
+					else
+					{
+						ObservableCollection<MonitoredDirectory> tmpList = new ObservableCollection<MonitoredDirectory>();
+						foreach (string subdir in Directory.GetDirectories(dir))
+							if (DirIsValidSvnPath(subdir))
+								tmpList.Add(new MonitoredDirectory(subdir));
+						monitoredList.Add(new MonitoredCategory(cat, tmpList));
+					}
+				}
+				else
+				{
+					ObservableCollection<MonitoredDirectory> tmpList = new ObservableCollection<MonitoredDirectory>();
+					foreach (string item in dict[cat])
+						tmpList.Add(new MonitoredDirectory(item));
+					monitoredList.Add(new MonitoredCategory(cat, new ObservableCollection<MonitoredDirectory>(tmpList.OrderBy(md => md.Directory))));
+				}
 			}
 
 			//tmpList = new ObservableCollection<MonitoredDirectory>();
@@ -159,6 +176,13 @@ namespace TestingMonitorSubversion
 			timer.Start();
 		}
 		private bool InitialShortTimeChanged = false;
+
+		private bool DirIsValidSvnPath(string dir)
+		{
+			if (!Directory.Exists(dir))
+				return false;
+			return Directory.Exists(System.IO.Path.Combine(dir, ".svn"));
+		}
 
 		public event PropertyChangedEventHandler PropertyChanged = new PropertyChangedEventHandler(delegate { });
 		public void OnPropertyChanged(string propertyName) { PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
