@@ -20,6 +20,8 @@ using SharedClasses;
 using System.Windows.Markup;
 using System.Windows.Interop;
 using System.IO;
+using System.Collections.Concurrent;
+using System.Threading;
 
 namespace TestingMonitorSubversion
 {
@@ -207,6 +209,8 @@ namespace TestingMonitorSubversion
 			CheckNow();
 		}
 
+		object lockObj = new object();
+		ConcurrentDictionary<MonitoredCategory, int> counterForCategories = new ConcurrentDictionary<MonitoredCategory, int>();
 		private const string svnPath = @"C:\Program Files\TortoiseSVN\bin\svn.exe";
 		private void CheckNow(MonitoredDirectory checkOnlyThisDirectory = null)
 		{
@@ -221,82 +225,102 @@ namespace TestingMonitorSubversion
 				buttonCheckNow.IsEnabled = false;
 
 				IsBusyChecking = true;
+				counterForCategories.Clear();
+
 				progessBar1.Visibility = System.Windows.Visibility.Visible;
 				this.UpdateLayout();
 				progessBar1.UpdateLayout();
 
 				foreach (MonitoredCategory cat in monitoredList)
+				{
+					while (!counterForCategories.TryAdd(cat, 0)) Thread.Sleep(100);
 					foreach (MonitoredDirectory md in cat.MonitoredDirectories)
 						if (checkOnlyThisDirectory == null || md == checkOnlyThisDirectory)
 							md.BrushType = BrushTypeEnum.Default;
+				}
 
 				List<string> ChangedDirectories = new List<string>();
-				foreach (MonitoredCategory cat in monitoredList)
+				foreach (MonitoredCategory category in monitoredList)
 				{
-					ThreadingInterop.PerformVoidFunctionSeperateThread(() =>
-					{
-						Parallel.ForEach(
-							cat.MonitoredDirectories,
-							(md) =>
-							{
-								if (checkOnlyThisDirectory != null && md != checkOnlyThisDirectory)
-									return;
-
-								md.Status = "";
-								/*
-								SubversionCommand.Commit ? "commit -m\"" + logmessage + "\" \"" + tmpFolder + "\""
-									: svnCommand == SubversionCommand.Update ? "update \"" + tmpFolder + "\""
-									: svnCommand == SubversionCommand.Status ? "status --show-updates \"" + tmpFolder + "\""
-									: svnCommand == SubversionCommand.StatusLocal ? "status \"" + tmpFolder + "\""
-									: "";
-								*/
-
-								Process proc = Process.Start(new ProcessStartInfo(svnPath, "status --show-updates \"" + md.Directory + "\"")
+					ThreadingInterop.PerformOneArgFunctionSeperateThread<MonitoredCategory>(
+						(cat) =>
+						{
+							int tmpint;
+							while (!counterForCategories.TryGetValue(cat, out tmpint)) Thread.Sleep(100);
+							cat.SubItemsSummary = string.Format(" ({0}/{1})", tmpint, cat.MonitoredDirectories.Count);
+							Parallel.ForEach(
+								cat.MonitoredDirectories,
+								(md) =>
 								{
-									RedirectStandardError = true,
-									RedirectStandardOutput = true,
-									CreateNoWindow = true,
-									UseShellExecute = false
+									if (checkOnlyThisDirectory != null && md != checkOnlyThisDirectory)
+										return;
+
+									md.Status = "";
+									/*
+									SubversionCommand.Commit ? "commit -m\"" + logmessage + "\" \"" + tmpFolder + "\""
+										: svnCommand == SubversionCommand.Update ? "update \"" + tmpFolder + "\""
+										: svnCommand == SubversionCommand.Status ? "status --show-updates \"" + tmpFolder + "\""
+										: svnCommand == SubversionCommand.StatusLocal ? "status \"" + tmpFolder + "\""
+										: "";
+									*/
+
+									Process proc = Process.Start(new ProcessStartInfo(svnPath, "status --show-updates \"" + md.Directory + "\"")
+									{
+										RedirectStandardError = true,
+										RedirectStandardOutput = true,
+										CreateNoWindow = true,
+										UseShellExecute = false
+									});
+									proc.OutputDataReceived += (snder, evtargs) =>
+									{
+										bool MustAdd = true;
+										if (string.IsNullOrWhiteSpace(evtargs.Data))
+											MustAdd = false;
+										else
+										{
+											foreach (string s in FilterList_StartsWith)
+												if (evtargs.Data.StartsWith(s, StringComparison.InvariantCultureIgnoreCase))
+													MustAdd = false;
+										}
+										if (MustAdd)
+										{
+											if (!ChangedDirectories.Contains(md.Directory))
+												ChangedDirectories.Add(md.Directory);
+
+											string strtoadd = evtargs.Data;
+											if (strtoadd.Contains(md.Directory))
+												strtoadd = strtoadd.Replace(md.Directory, "...");
+											md.Status += (md.Status.Length > 0 ? Environment.NewLine : "") + strtoadd;
+										}
+									};
+									proc.ErrorDataReceived += (snder, evtargs) =>
+									{
+										if (!string.IsNullOrWhiteSpace(evtargs.Data))
+											md.Status += (md.Status.Length > 0 ? Environment.NewLine : "") + "Error: " + evtargs.Data;
+									};
+									proc.BeginErrorReadLine();
+									proc.BeginOutputReadLine();
+
+									proc.WaitForExit();
+
+
+									proc.Dispose();
+									proc = null;
+
+									md.BrushType = string.IsNullOrWhiteSpace(md.Status) ? BrushTypeEnum.Success : BrushTypeEnum.Error;
+
+									lock (lockObj)
+									{
+										int outint;
+										while (!counterForCategories.TryGetValue(cat, out outint)) Thread.Sleep(100);
+										int outint2 = outint + 1;
+										while (!counterForCategories.TryUpdate(cat, outint2, outint)) Thread.Sleep(100);
+										cat.SubItemsSummary = string.Format(" ({0}/{1})", outint2, cat.MonitoredDirectories.Count);
+									}
 								});
-								proc.OutputDataReceived += (snder, evtargs) =>
-								{
-									bool MustAdd = true;
-									if (string.IsNullOrWhiteSpace(evtargs.Data))
-										MustAdd = false;
-									else
-									{
-										foreach (string s in FilterList_StartsWith)
-											if (evtargs.Data.StartsWith(s, StringComparison.InvariantCultureIgnoreCase))
-												MustAdd = false;
-									}
-									if (MustAdd)
-									{
-										if (!ChangedDirectories.Contains(md.Directory))
-											ChangedDirectories.Add(md.Directory);
-
-										string strtoadd = evtargs.Data;
-										if (strtoadd.Contains(md.Directory))
-											strtoadd = strtoadd.Replace(md.Directory, "...");
-										md.Status += (md.Status.Length > 0 ? Environment.NewLine : "") + strtoadd;
-									}
-								};
-								proc.ErrorDataReceived += (snder, evtargs) =>
-								{
-									if (!string.IsNullOrWhiteSpace(evtargs.Data))
-										md.Status += (md.Status.Length > 0 ? Environment.NewLine : "") + "Error: " + evtargs.Data;
-								};
-								proc.BeginErrorReadLine();
-								proc.BeginOutputReadLine();
-
-								proc.WaitForExit();
-
-
-								proc.Dispose();
-								proc = null;
-
-								md.BrushType = string.IsNullOrWhiteSpace(md.Status) ? BrushTypeEnum.Success : BrushTypeEnum.Error;
-							});
-					});
+						},
+						category,
+						true);
 				}
 				if (null == checkOnlyThisDirectory)
 				{
@@ -512,14 +536,32 @@ namespace TestingMonitorSubversion
 	{
 		public string CategoryName { get; private set; }
 		public ObservableCollection<MonitoredDirectory> MonitoredDirectories { get; private set; }
+		private string _subitemssummary;
+		public string SubItemsSummary { get { return _subitemssummary; } set { _subitemssummary = value; OnPropertyChanged("SubItemsSummary"); } }
+
 		private bool _isexpanded;
 		public bool IsExpanded { get { return _isexpanded; } set { _isexpanded = value; OnPropertyChanged("IsExpanded"); } }
+		public BrushTypeEnum _brushtype;
+		public BrushTypeEnum BrushType { get { return _brushtype; } set { _brushtype = value; OnPropertyChanged("BrushType"); } }
 
 		public MonitoredCategory(string CategoryName, ObservableCollection<MonitoredDirectory> MonitoredDirectories)
 		{
 			this.CategoryName = CategoryName;
+			this.SubItemsSummary = "";
 			this.MonitoredDirectories = MonitoredDirectories;
 			this.IsExpanded = true;
+			this.BrushType = BrushTypeEnum.Success;
+			foreach (var mondir in MonitoredDirectories)
+				mondir.PropertyChanged += (sn, ev) =>
+				{
+					if (ev.PropertyName.Equals("BrushType", StringComparison.InvariantCultureIgnoreCase))
+					{
+						this.BrushType = BrushTypeEnum.Success;
+						foreach (var mdir in MonitoredDirectories)
+							if (mdir.BrushType == BrushTypeEnum.Error)
+								this.BrushType = BrushTypeEnum.Error;
+					}
+				};
 		}
 
 		public event PropertyChangedEventHandler PropertyChanged = new PropertyChangedEventHandler(delegate { });
