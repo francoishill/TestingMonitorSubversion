@@ -407,7 +407,7 @@ namespace TestingMonitorSubversion
 
 			ThreadingInterop.PerformVoidFunctionSeperateThread(() =>
 			{
-				Process svn = StartTortoiseProc(TortoiseCommands.Log, md);
+				Process svn = TortoiseProcInterop.StartTortoiseProc(TortoiseProcInterop.TortoiseCommands.Log, md.Directory);
 				svn.WaitForExit();
 				Dispatcher.BeginInvoke((Action)delegate { CheckNow(md); });
 			});
@@ -481,7 +481,7 @@ namespace TestingMonitorSubversion
 
 			ThreadingInterop.PerformVoidFunctionSeperateThread(() =>
 			{
-				Process svn = StartTortoiseProc(TortoiseCommands.Update, md);
+				Process svn = TortoiseProcInterop.StartTortoiseProc(TortoiseProcInterop.TortoiseCommands.Update, md.Directory);
 				svn.WaitForExit();
 				Dispatcher.BeginInvoke((Action)delegate { CheckNow(md); });
 			});
@@ -497,19 +497,10 @@ namespace TestingMonitorSubversion
 
 			ThreadingInterop.PerformVoidFunctionSeperateThread(() =>
 			{
-				Process svn = StartTortoiseProc(TortoiseCommands.Commit, md);
+				Process svn = TortoiseProcInterop.StartTortoiseProc(TortoiseProcInterop.TortoiseCommands.Commit, md.Directory);
 				svn.WaitForExit();
 				Dispatcher.BeginInvoke((Action)delegate { CheckNow(md); });
 			});
-		}
-
-		enum TortoiseCommands { Log, Commit, Update };
-		private Process StartTortoiseProc(TortoiseCommands tortoiseCommand, MonitoredDirectory monitoredDirectory)
-		{
-			return Process.Start(
-				@"C:\Program Files\TortoiseSVN\bin\TortoiseProc.exe",
-				"/command:" + tortoiseCommand.ToString().ToLower()
-				+ @" /path:""" + monitoredDirectory.Directory + @"""");
 		}
 
 		private void MenuItemCheckOnlyThisDirectoy_Click(object sender, EventArgs e)
