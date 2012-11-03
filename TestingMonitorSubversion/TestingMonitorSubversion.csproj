@@ -96,6 +96,9 @@
       <Link>BindableRichTextBox.xaml.cs</Link>
       <DependentUpon>BindableRichTextBox.xaml</DependentUpon>
     </Compile>
+    <Compile Include="..\..\SharedClasses\CalledFromService.cs">
+      <Link>CalledFromService.cs</Link>
+    </Compile>
     <Compile Include="..\..\SharedClasses\CompareObjects.cs">
       <Link>CompareObjects.cs</Link>
     </Compile>
