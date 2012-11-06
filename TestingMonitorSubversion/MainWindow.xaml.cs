@@ -80,8 +80,8 @@ namespace TestingMonitorSubversion
 			source.AddHook(WndProc);
 
 			var handle = new WindowInteropHelper(Application.Current.MainWindow).Handle;
-			if (!Win32Api.RegisterHotKey(handle, Win32Api.Hotkey1, Win32Api.MOD_WIN, (int)System.Windows.Forms.Keys.S))
-				UserMessages.ShowWarningMessage("TestingMonitorSubversion could not register hotkey WinKey + S");
+			if (!Win32Api.RegisterHotKey(handle, Win32Api.Hotkey1, Win32Api.MOD_WIN, (int)System.Windows.Forms.Keys.V))
+				UserMessages.ShowWarningMessage("TestingMonitorSubversion could not register hotkey WinKey + V");
 		}
 
 		private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
