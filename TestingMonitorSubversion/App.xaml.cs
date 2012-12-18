@@ -14,7 +14,8 @@ namespace TestingMonitorSubversion
 	{
 		protected override void OnStartup(StartupEventArgs e)
 		{
-			SharedClasses.AutoUpdating.CheckForUpdates(null, null);
+			SharedClasses.AutoUpdating.CheckForUpdates_ExceptionHandler();
+			//SharedClasses.AutoUpdating.CheckForUpdates(null, null);
 
 			base.OnStartup(e);
 		}
