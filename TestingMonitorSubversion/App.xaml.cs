@@ -18,6 +18,9 @@ namespace TestingMonitorSubversion
 			//SharedClasses.AutoUpdating.CheckForUpdates(null, null);
 
 			base.OnStartup(e);
+
+			TestingMonitorSubversion.MainWindow mw = new MainWindow();
+			mw.ShowDialog();
 		}
 	}
 }

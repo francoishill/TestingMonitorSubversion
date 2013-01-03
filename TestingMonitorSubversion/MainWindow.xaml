@@ -141,6 +141,14 @@
 								  Width='80'
 								  Value='{Binding Path=TimerInterval, ElementName=mainWindow}'
 								  Step='500' />
+				<Label Content='_About'
+					   FontSize='10'
+					   Foreground='Gray'
+					   Cursor='Hand'
+					   HorizontalAlignment='Right'
+					   Padding='0'
+					   Margin='0 3 0 0'
+					   MouseLeftButtonDown='labelAbout_MouseLeftButtonDown' />
 			</StackPanel>
 			<TextBox Name='textBoxLog'
 					 HorizontalScrollBarVisibility='Auto'

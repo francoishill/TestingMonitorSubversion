@@ -521,6 +521,15 @@ namespace TestingMonitorSubversion
 		{
 			textBoxLog.Text = null;
 		}
+
+		private void labelAbout_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+		{
+			AboutWindow2.ShowAboutWindow(new System.Collections.ObjectModel.ObservableCollection<DisplayItem>()
+			{
+				new DisplayItem("Author", "Francois Hill"),
+				new DisplayItem("Icon(s) obtained from", null)
+			});
+		}
 	}
 
 	public class MonitoredCategory : INotifyPropertyChanged
