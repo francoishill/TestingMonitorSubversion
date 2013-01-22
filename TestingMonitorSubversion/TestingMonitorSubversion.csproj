@@ -44,6 +44,9 @@
     <ApplicationIcon>app.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.WindowsAPICodePack.Shell">
+      <HintPath>..\..\..\DLLs\Windows API\Microsoft.WindowsAPICodePack.Shell.dll</HintPath>
+    </Reference>
     <Reference Include="NumericUpDown">
       <HintPath>..\..\..\..\..\..\..\Francois\Other\DLLs\WPF numeric updown\NumericUpDown.dll</HintPath>
     </Reference>
@@ -104,6 +107,9 @@
     </Compile>
     <Compile Include="..\..\SharedClasses\DeveloperCommunication.cs">
       <Link>DeveloperCommunication.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SharedClasses\Logging.cs">
+      <Link>Logging.cs</Link>
     </Compile>
     <Compile Include="..\..\SharedClasses\ReflectionInterop.cs">
       <Link>ReflectionInterop.cs</Link>
@@ -200,6 +206,9 @@
     </Compile>
     <Compile Include="..\..\SharedClasses\WindowMessagesInterop.cs">
       <Link>WindowMessagesInterop.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SharedClasses\Windows7JumpListsInterop.cs">
+      <Link>Windows7JumpListsInterop.cs</Link>
     </Compile>
     <Compile Include="..\..\SharedClasses\WPFdraggableCanvas.cs">
       <Link>WPFdraggableCanvas.cs</Link>
