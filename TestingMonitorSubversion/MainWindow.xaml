@@ -3,7 +3,7 @@
 		xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 		xmlns:local='clr-namespace:TestingMonitorSubversion'
-		xmlns:sharedclasses='clr-namespace:SharedClasses'
+		xmlns:sharedclasses='clr-namespace:SharedClasses;assembly=_OwnAppsSharedDll'
 		xmlns:forms="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
 		xmlns:my="clr-namespace:eisiWare;assembly=NumericUpDown"
 		Title="Monitor Subversion"
