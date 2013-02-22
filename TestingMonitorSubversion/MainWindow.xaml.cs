@@ -405,7 +405,7 @@ namespace TestingMonitorSubversion
 
 			ThreadingInterop.PerformVoidFunctionSeperateThread(() =>
 			{
-				Process svn = TortoiseProcInterop.StartTortoiseProc(TortoiseProcInterop.TortoiseCommands.Log, md.Directory);
+				Process svn = TortoiseProcInterop.Subversion_StartTortoiseProc(TortoiseProcInterop.TortoiseSvnCommands.Log, md.Directory);
 				svn.WaitForExit();
 				Dispatcher.BeginInvoke((Action)delegate { CheckNow(md); });
 			});
@@ -479,7 +479,7 @@ namespace TestingMonitorSubversion
 
 			ThreadingInterop.PerformVoidFunctionSeperateThread(() =>
 			{
-				Process svn = TortoiseProcInterop.StartTortoiseProc(TortoiseProcInterop.TortoiseCommands.Update, md.Directory);
+				Process svn = TortoiseProcInterop.Subversion_StartTortoiseProc(TortoiseProcInterop.TortoiseSvnCommands.Update, md.Directory);
 				svn.WaitForExit();
 				Dispatcher.BeginInvoke((Action)delegate { CheckNow(md); });
 			});
@@ -495,7 +495,7 @@ namespace TestingMonitorSubversion
 
 			ThreadingInterop.PerformVoidFunctionSeperateThread(() =>
 			{
-				Process svn = TortoiseProcInterop.StartTortoiseProc(TortoiseProcInterop.TortoiseCommands.Commit, md.Directory);
+				Process svn = TortoiseProcInterop.Subversion_StartTortoiseProc(TortoiseProcInterop.TortoiseSvnCommands.Commit, md.Directory);
 				svn.WaitForExit();
 				Dispatcher.BeginInvoke((Action)delegate { CheckNow(md); });
 			});
