@@ -577,7 +577,7 @@ namespace TestingMonitorSubversion
 			if (cm == null) return;
 			cm.IsOpen = false;
 
-			if (!DirIsValidSvnPath(md.Directory))
+			if (DirIsValidSvnPath(md.Directory))
 				return;
 
 			ThreadingInterop.PerformVoidFunctionSeperateThread(() =>
