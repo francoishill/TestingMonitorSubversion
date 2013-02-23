@@ -145,7 +145,7 @@ namespace TestingMonitorSubversion
 					{
 						ObservableCollection<MonitoredDirectory> tmpList = new ObservableCollection<MonitoredDirectory>();
 						foreach (string subdir in Directory.GetDirectories(dir))
-							if (DirIsValidSvnPath(subdir))
+							if (DirIsValidSvnPath(subdir) || DirIsValidGitPath(subdir))
 								tmpList.Add(new MonitoredDirectory(subdir));
 						monitoredList.Add(new MonitoredCategory(cat, tmpList));
 					}
@@ -184,6 +184,13 @@ namespace TestingMonitorSubversion
 			return Directory.Exists(System.IO.Path.Combine(dir, ".svn"));
 		}
 
+		private bool DirIsValidGitPath(string dir)
+		{
+			if (!Directory.Exists(dir))
+				return false;
+			return Directory.Exists(System.IO.Path.Combine(dir, ".git"));
+		}
+
 		public event PropertyChangedEventHandler PropertyChanged = new PropertyChangedEventHandler(delegate { });
 		public void OnPropertyChanged(string propertyName) { PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
 
@@ -207,15 +214,40 @@ namespace TestingMonitorSubversion
 			CheckNow();
 		}
 
+		private bool IsSvnInstalled() { return File.Exists(TortoiseProcInterop.cSvnPath); }
+		private bool IsGitInstalled() { return File.Exists(TortoiseProcInterop.cGitPath); }
+
 		object lockObj = new object();
 		ConcurrentDictionary<MonitoredCategory, int> counterForCategories = new ConcurrentDictionary<MonitoredCategory, int>();
-		private const string svnPath = @"C:\Program Files\TortoiseSVN\bin\svn.exe";
 		private void CheckNow(MonitoredDirectory checkOnlyThisDirectory = null)
 		{
-			if (!File.Exists(svnPath))
+			labelStatus.Content = null;
+			labelStatus.ToolTip = null;
+			labelStatus.Foreground = Brushes.Black;
+
+			if (!IsSvnInstalled() && !IsGitInstalled())
 			{
-				UserMessages.ShowErrorMessage("Cannot use any SVN functionality, file missing: " + svnPath);
-				return;
+				labelStatus.Content = "Cannot use any Svn/Git functionality, exe files missing";
+				labelStatus.ToolTip = TortoiseProcInterop.cSvnPath + Environment.NewLine + TortoiseProcInterop.cGitPath;
+				labelStatus.Foreground = Brushes.Red;
+			}
+			else if (!IsSvnInstalled())
+			{
+				labelStatus.Content = "Cannot use any Svn functionality, file missing: " + TortoiseProcInterop.cSvnPath;
+				labelStatus.ToolTip = labelStatus.Content;
+				labelStatus.Foreground = Brushes.Red;
+			}
+			else if (!IsGitInstalled())
+			{
+				labelStatus.Content = "Cannot use any Git functionality, file missing: " + TortoiseProcInterop.cGitPath;
+				labelStatus.ToolTip = labelStatus.Content;
+				labelStatus.Foreground = Brushes.Red;
+			}
+			else
+			{
+				labelStatus.Content = "Both Svn & Git is installed";
+				labelStatus.ToolTip = TortoiseProcInterop.cSvnPath + Environment.NewLine + TortoiseProcInterop.cGitPath;
+				labelStatus.Foreground = Brushes.Green;
 			}
 
 			if (!IsBusyChecking)
@@ -246,76 +278,85 @@ namespace TestingMonitorSubversion
 							int tmpint;
 							while (!counterForCategories.TryGetValue(cat, out tmpint)) Thread.Sleep(100);
 							cat.SubItemsSummary = string.Format(" ({0}/{1})", tmpint, cat.MonitoredDirectories.Count);
-							Parallel.ForEach(
+							/*Parallel.ForEach(
 								cat.MonitoredDirectories,
-								(md) =>
+								(md) =>*/
+							foreach (var md in cat.MonitoredDirectories)
+							{
+								if (checkOnlyThisDirectory != null && md != checkOnlyThisDirectory)
+									return;
+
+								md.Status = "";
+
+								if (DirIsValidSvnPath(md.Directory))
 								{
-									if (checkOnlyThisDirectory != null && md != checkOnlyThisDirectory)
+									if (!IsSvnInstalled())
 										return;
+								}
+								else if (DirIsValidGitPath(md.Directory))
+								{
+									if (!IsGitInstalled())
+										return;
+									Environment.CurrentDirectory = md.Directory;
+								}
 
-									md.Status = "";
-									/*
-									SubversionCommand.Commit ? "commit -m\"" + logmessage + "\" \"" + tmpFolder + "\""
-										: svnCommand == SubversionCommand.Update ? "update \"" + tmpFolder + "\""
-										: svnCommand == SubversionCommand.Status ? "status --show-updates \"" + tmpFolder + "\""
-										: svnCommand == SubversionCommand.StatusLocal ? "status \"" + tmpFolder + "\""
-										: "";
-									*/
-
-									Process proc = Process.Start(new ProcessStartInfo(svnPath, "status --show-updates \"" + md.Directory + "\"")
-									{
-										RedirectStandardError = true,
-										RedirectStandardOutput = true,
-										CreateNoWindow = true,
-										UseShellExecute = false
-									});
-									proc.OutputDataReceived += (snder, evtargs) =>
-									{
-										bool MustAdd = true;
-										if (string.IsNullOrWhiteSpace(evtargs.Data))
-											MustAdd = false;
-										else
-										{
-											foreach (string s in FilterList_StartsWith)
-												if (evtargs.Data.StartsWith(s, StringComparison.InvariantCultureIgnoreCase))
-													MustAdd = false;
-										}
-										if (MustAdd)
-										{
-											if (!ChangedDirectories.Contains(md.Directory))
-												ChangedDirectories.Add(md.Directory);
-
-											string strtoadd = evtargs.Data;
-											if (strtoadd.Contains(md.Directory))
-												strtoadd = strtoadd.Replace(md.Directory, "...");
-											md.Status += (md.Status.Length > 0 ? Environment.NewLine : "") + strtoadd;
-										}
-									};
-									proc.ErrorDataReceived += (snder, evtargs) =>
-									{
-										if (!string.IsNullOrWhiteSpace(evtargs.Data))
-											md.Status += (md.Status.Length > 0 ? Environment.NewLine : "") + "Error: " + evtargs.Data;
-									};
-									proc.BeginErrorReadLine();
-									proc.BeginOutputReadLine();
-
-									proc.WaitForExit();
-
-
-									proc.Dispose();
-									proc = null;
-
-									md.BrushType = string.IsNullOrWhiteSpace(md.Status) ? BrushTypeEnum.Success : BrushTypeEnum.Error;
-
-									lock (lockObj)
-									{
-										int outint;
-										while (!counterForCategories.TryGetValue(cat, out outint)) Thread.Sleep(100);
-										int outint2 = outint + 1;
-										while (!counterForCategories.TryUpdate(cat, outint2, outint)) Thread.Sleep(100);
-										cat.SubItemsSummary = string.Format(" ({0}/{1})", outint2, cat.MonitoredDirectories.Count);
-									}
+								Process proc = Process.Start(
+									DirIsValidSvnPath(md.Directory)
+									? new ProcessStartInfo(TortoiseProcInterop.cSvnPath, "status --show-updates \"" + md.Directory + "\"")
+									: new ProcessStartInfo(TortoiseProcInterop.cGitPath, "status --short")
+								{
+									RedirectStandardError = true,
+									RedirectStandardOutput = true,
+									CreateNoWindow = true,
+									UseShellExecute = false
 								});
+								proc.OutputDataReceived += (snder, evtargs) =>
+								{
+									bool MustAdd = true;
+									if (string.IsNullOrWhiteSpace(evtargs.Data))
+										MustAdd = false;
+									else
+									{
+										foreach (string s in FilterList_StartsWith)
+											if (evtargs.Data.StartsWith(s, StringComparison.InvariantCultureIgnoreCase))
+												MustAdd = false;
+									}
+									if (MustAdd)
+									{
+										if (!ChangedDirectories.Contains(md.Directory))
+											ChangedDirectories.Add(md.Directory);
+
+										string strtoadd = evtargs.Data;
+										if (strtoadd.Contains(md.Directory))
+											strtoadd = strtoadd.Replace(md.Directory, "...");
+										md.Status += (md.Status.Length > 0 ? Environment.NewLine : "") + strtoadd;
+									}
+								};
+								proc.ErrorDataReceived += (snder, evtargs) =>
+								{
+									if (!string.IsNullOrWhiteSpace(evtargs.Data))
+										md.Status += (md.Status.Length > 0 ? Environment.NewLine : "") + "Error: " + evtargs.Data;
+								};
+								proc.BeginErrorReadLine();
+								proc.BeginOutputReadLine();
+
+								proc.WaitForExit();
+
+
+								proc.Dispose();
+								proc = null;
+
+								md.BrushType = string.IsNullOrWhiteSpace(md.Status) ? BrushTypeEnum.Success : BrushTypeEnum.Error;
+
+								lock (lockObj)
+								{
+									int outint;
+									while (!counterForCategories.TryGetValue(cat, out outint)) Thread.Sleep(100);
+									int outint2 = outint + 1;
+									while (!counterForCategories.TryUpdate(cat, outint2, outint)) Thread.Sleep(100);
+									cat.SubItemsSummary = string.Format(" ({0}/{1})", outint2, cat.MonitoredDirectories.Count);
+								}
+							};//);
 						},
 						category,
 						true);
@@ -405,8 +446,12 @@ namespace TestingMonitorSubversion
 
 			ThreadingInterop.PerformVoidFunctionSeperateThread(() =>
 			{
-				Process svn = TortoiseProcInterop.Subversion_StartTortoiseProc(TortoiseProcInterop.TortoiseSvnCommands.Log, md.Directory);
-				svn.WaitForExit();
+				if (DirIsValidSvnPath(md.Directory))
+					TortoiseProcInterop.Subversion_StartTortoiseProc(TortoiseProcInterop.TortoiseSvnCommands.Log, md.Directory)
+						.WaitForExit();
+				if (DirIsValidGitPath(md.Directory))
+					TortoiseProcInterop.Git_StartTortoiseProc(TortoiseProcInterop.TortoiseGitCommands.Log, md.Directory)
+						.WaitForExit();
 				Dispatcher.BeginInvoke((Action)delegate { CheckNow(md); });
 			});
 		}
@@ -423,7 +468,22 @@ namespace TestingMonitorSubversion
 			{
 				string log = "";
 
-				Process proc = Process.Start(new ProcessStartInfo(@"C:\Program Files\TortoiseSVN\bin\svn.exe", "log -l 15 \"" + md.Directory + "\"")
+				if (DirIsValidSvnPath(md.Directory))
+				{
+					if (!IsSvnInstalled())
+						return;
+				}
+				else if (DirIsValidGitPath(md.Directory))
+				{
+					if (!IsGitInstalled())
+						return;
+					Environment.CurrentDirectory = md.Directory;
+				}
+
+				Process proc = Process.Start(
+					DirIsValidSvnPath(md.Directory)
+					? new ProcessStartInfo(TortoiseProcInterop.cSvnPath, "log -l 15 \"" + md.Directory + "\"")
+					: new ProcessStartInfo(TortoiseProcInterop.cGitPath, "log -l 15")
 				{
 					RedirectStandardError = true,
 					RedirectStandardOutput = true,
@@ -479,8 +539,12 @@ namespace TestingMonitorSubversion
 
 			ThreadingInterop.PerformVoidFunctionSeperateThread(() =>
 			{
-				Process svn = TortoiseProcInterop.Subversion_StartTortoiseProc(TortoiseProcInterop.TortoiseSvnCommands.Update, md.Directory);
-				svn.WaitForExit();
+				if (DirIsValidSvnPath(md.Directory))
+					TortoiseProcInterop.Subversion_StartTortoiseProc(TortoiseProcInterop.TortoiseSvnCommands.Update, md.Directory)
+						.WaitForExit();
+				if (DirIsValidGitPath(md.Directory))
+					TortoiseProcInterop.Git_StartTortoiseProc(TortoiseProcInterop.TortoiseGitCommands.Pull, md.Directory)
+						.WaitForExit();
 				Dispatcher.BeginInvoke((Action)delegate { CheckNow(md); });
 			});
 		}
@@ -495,8 +559,31 @@ namespace TestingMonitorSubversion
 
 			ThreadingInterop.PerformVoidFunctionSeperateThread(() =>
 			{
-				Process svn = TortoiseProcInterop.Subversion_StartTortoiseProc(TortoiseProcInterop.TortoiseSvnCommands.Commit, md.Directory);
-				svn.WaitForExit();
+				if (DirIsValidSvnPath(md.Directory))
+					TortoiseProcInterop.Subversion_StartTortoiseProc(TortoiseProcInterop.TortoiseSvnCommands.Commit, md.Directory)
+						.WaitForExit();
+				if (DirIsValidGitPath(md.Directory))
+					TortoiseProcInterop.Git_StartTortoiseProc(TortoiseProcInterop.TortoiseGitCommands.Commit, md.Directory)
+						.WaitForExit();
+				Dispatcher.BeginInvoke((Action)delegate { CheckNow(md); });
+			});
+		}
+
+		private void MenuItemGitPush_Click(object sender, RoutedEventArgs e)
+		{
+			MenuItem mi = sender as MenuItem;
+			MonitoredDirectory md = mi.DataContext as MonitoredDirectory;
+			ContextMenu cm = mi.Parent as ContextMenu;
+			if (cm == null) return;
+			cm.IsOpen = false;
+
+			if (!DirIsValidSvnPath(md.Directory))
+				return;
+
+			ThreadingInterop.PerformVoidFunctionSeperateThread(() =>
+			{
+				TortoiseProcInterop.Git_StartTortoiseProc(TortoiseProcInterop.TortoiseGitCommands.Push, md.Directory)
+						.WaitForExit();
 				Dispatcher.BeginInvoke((Action)delegate { CheckNow(md); });
 			});
 		}
