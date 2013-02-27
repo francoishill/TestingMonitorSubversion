@@ -300,16 +300,16 @@ namespace TestingMonitorSubversion
 									Environment.CurrentDirectory = md.Directory;
 								}
 
-								Process proc = Process.Start(
+								Process proc = new Process();
+								proc.StartInfo =
 									DirIsValidSvnPath(md.Directory)
 									? new ProcessStartInfo(TortoiseProcInterop.cSvnPath, "status --show-updates \"" + md.Directory + "\"")
-									: new ProcessStartInfo(TortoiseProcInterop.cGitPath, "status --short")
-								{
-									RedirectStandardError = true,
-									RedirectStandardOutput = true,
-									CreateNoWindow = true,
-									UseShellExecute = false
-								});
+									: new ProcessStartInfo(TortoiseProcInterop.cGitPath, "status --short");
+								proc.StartInfo.RedirectStandardError = true;
+								proc.StartInfo.RedirectStandardOutput = true;
+								proc.StartInfo.CreateNoWindow = true;
+								proc.StartInfo.UseShellExecute = false;
+
 								proc.OutputDataReceived += (snder, evtargs) =>
 								{
 									bool MustAdd = true;
@@ -337,6 +337,7 @@ namespace TestingMonitorSubversion
 									if (!string.IsNullOrWhiteSpace(evtargs.Data))
 										md.Status += (md.Status.Length > 0 ? Environment.NewLine : "") + "Error: " + evtargs.Data;
 								};
+								proc.Start();
 								proc.BeginErrorReadLine();
 								proc.BeginOutputReadLine();
 
