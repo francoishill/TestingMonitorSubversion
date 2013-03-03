@@ -284,7 +284,7 @@ namespace TestingMonitorSubversion
 							foreach (var md in cat.MonitoredDirectories)
 							{
 								if (checkOnlyThisDirectory != null && md != checkOnlyThisDirectory)
-									return;
+									continue;
 
 								md.Status = "";
 
