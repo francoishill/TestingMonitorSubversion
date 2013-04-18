@@ -38,7 +38,7 @@ namespace TestingMonitorSubversion
 		{
 			InitializeComponent();
 			//StartPipeClient();
-			WindowMessagesInterop.InitializeClientMessages();
+			//WindowMessagesInterop.InitializeClientMessages();
 
 			/*var client = new SvnClient();
 			var path = @"C:\Programming\Wadiso6\Wadiso6Lib";
@@ -131,7 +131,6 @@ namespace TestingMonitorSubversion
 			//monitoredList.Add(new MonitoredCategory("Work", tmpList));
 
 			//Work|C:\Programming\Wadiso6\Wadiso6Lib,C:\Programming\GLSCore,C:\Programming\GLSCore6,C:\Programming\Sewsan4\SewsanLib,C:\Programming\Sewsan6\Sewsan6Lib,C:\Programming\Wadiso5\W5Source|Personal|C:\Users\francois\Documents\Visual Studio 2010\Projects\SharedClasses,C:\Users\francois\Documents\Visual Studio 2010\Projects\TestingSharedClasses,C:\Users\francois\Documents\Visual Studio 2010\Projects\QuickAccess,C:\Users\francois\Documents\Visual Studio 2010\Projects\TestingMonitorSubversion,C:\Users\francois\Documents\Visual Studio 2010\Projects\GenericTextFunctions
-
 			GenericSettings.EnsureAllSettingsAreInitialized();
 			var dict = GlobalSettings.SubversionSettings.Instance.GetGroupedMonitoredList();
 			foreach (string cat in dict.Keys)
