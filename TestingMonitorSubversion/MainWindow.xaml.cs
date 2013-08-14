@@ -450,8 +450,7 @@ namespace TestingMonitorSubversion
 					TortoiseProcInterop.Subversion_StartTortoiseProc(TortoiseProcInterop.TortoiseSvnCommands.Log, md.Directory)
 						.WaitForExit();
 				if (DirIsValidGitPath(md.Directory))
-					TortoiseProcInterop.Git_StartTortoiseProc(TortoiseProcInterop.TortoiseGitCommands.Log, md.Directory)
-						.WaitForExit();
+					TortoiseProcInterop.Git_StartTortoiseProc(TortoiseProcInterop.TortoiseGitCommands.Log, md.Directory, true);
 				Dispatcher.BeginInvoke((Action)delegate { CheckNow(md); });
 			});
 		}
@@ -543,8 +542,7 @@ namespace TestingMonitorSubversion
 					TortoiseProcInterop.Subversion_StartTortoiseProc(TortoiseProcInterop.TortoiseSvnCommands.Update, md.Directory)
 						.WaitForExit();
 				if (DirIsValidGitPath(md.Directory))
-					TortoiseProcInterop.Git_StartTortoiseProc(TortoiseProcInterop.TortoiseGitCommands.Pull, md.Directory)
-						.WaitForExit();
+					TortoiseProcInterop.Git_StartTortoiseProc(TortoiseProcInterop.TortoiseGitCommands.Pull, md.Directory, true);
 				Dispatcher.BeginInvoke((Action)delegate { CheckNow(md); });
 			});
 		}
@@ -563,8 +561,7 @@ namespace TestingMonitorSubversion
 					TortoiseProcInterop.Subversion_StartTortoiseProc(TortoiseProcInterop.TortoiseSvnCommands.Commit, md.Directory)
 						.WaitForExit();
 				if (DirIsValidGitPath(md.Directory))
-					TortoiseProcInterop.Git_StartTortoiseProc(TortoiseProcInterop.TortoiseGitCommands.Commit, md.Directory)
-						.WaitForExit();
+					TortoiseProcInterop.Git_StartTortoiseProc(TortoiseProcInterop.TortoiseGitCommands.Commit, md.Directory, true);
 				Dispatcher.BeginInvoke((Action)delegate { CheckNow(md); });
 			});
 		}
@@ -582,8 +579,7 @@ namespace TestingMonitorSubversion
 
 			ThreadingInterop.PerformVoidFunctionSeperateThread(() =>
 			{
-				TortoiseProcInterop.Git_StartTortoiseProc(TortoiseProcInterop.TortoiseGitCommands.Push, md.Directory)
-						.WaitForExit();
+				TortoiseProcInterop.Git_StartTortoiseProc(TortoiseProcInterop.TortoiseGitCommands.Push, md.Directory, true);
 				Dispatcher.BeginInvoke((Action)delegate { CheckNow(md); });
 			});
 		}

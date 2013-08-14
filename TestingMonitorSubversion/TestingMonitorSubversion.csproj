@@ -50,14 +50,11 @@
       <HintPath>..\..\..\DLLs\Windows API\Microsoft.WindowsAPICodePack.Shell.dll</HintPath>
     </Reference>
     <Reference Include="NumericUpDown">
-      <HintPath>..\..\..\..\..\Users\francois\Dropbox\Dev\DLLs\WPF numeric updown\NumericUpDown.dll</HintPath>
+      <HintPath>..\..\..\DLLs\WPF numeric updown\NumericUpDown.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
-    <Reference Include="System.Windows.Controls.DataVisualization.Toolkit">
-      <HintPath>..\..\..\..\..\Users\francois\Dropbox\Dev\DLLs\WPF Toolkit\System.Windows.Controls.DataVisualization.Toolkit.dll</HintPath>
-    </Reference>
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
@@ -71,9 +68,6 @@
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="WindowsFormsIntegration" />
-    <Reference Include="WPFToolkit.Extended">
-      <HintPath>..\..\..\..\..\Users\francois\Dropbox\Dev\DLLs\WPF Toolkit (Extended)\WPFToolkit.Extended.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">

@@ -1,5 +1,4 @@
-﻿<Window xmlns:my1="clr-namespace:FsWpfControls.FsRichTextBox"
-		x:Class="TestingMonitorSubversion.MainWindow"
+﻿<Window x:Class="TestingMonitorSubversion.MainWindow"
 		xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 		xmlns:local='clr-namespace:TestingMonitorSubversion'
